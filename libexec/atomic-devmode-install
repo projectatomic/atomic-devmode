@@ -1,0 +1,105 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+BLS_DIR="/boot/loader/entries/"
+DEVMODE_TITLE="Developer Mode"
+DEVMODE_NOCLOUD="/usr/lib/atomic-devmode/cloud-init."
+
+main() {
+
+	# read in the most updated BLS entry
+	local entry_filename=$(get_bls_entry)
+	echo "INFO: Using BLS entry file \"$entry_filename\" as template."
+
+	local entry_text=$(cat $entry_filename)
+
+	# modify it for our needs
+	local new_entry_text=$(modify_bls_entry "$entry_text")
+
+	# save it back to disk
+	local new_entry_filename="${entry_filename%.conf}-devmode.conf"
+	echo "$new_entry_text" > "$new_entry_filename"
+
+	# generate new grub config
+	echo "INFO: Regenerating GRUB2 config"
+	grub2-mkconfig -o /boot/loader/grub.cfg
+
+	# and now we can get rid of our file
+	rm "$new_entry_filename"
+}
+
+get_bls_entry() {
+
+	# make sure the directory exists and is writeable
+	if [ ! -w "$BLS_DIR" ]; then
+		echo "ERROR: Directory \"$BLS_DIR\" not writeable." >&2
+		exit 1
+	fi
+
+	local new_entry
+	local version=-1
+	for new_entry in $(find "$BLS_DIR" -name '*.conf'); do
+		local new_version=$(grep version "$new_entry" | cut -f 2 -d ' ')
+		if [ $new_version -gt $version ]; then
+			local entry="$new_entry"
+			local version=$new_version
+		fi
+	done
+
+	if [ -z "$entry" ]; then
+		echo "ERROR: No BLS entries found in \"$BLS_DIR\"." >&2
+		exit 1
+	fi
+
+	echo $entry
+}
+
+# $1 - original entry
+modify_bls_entry() {
+	local entry="$1"
+
+	# get the title used in the original entry
+	orig_title=$(grep title <<< "$entry" | cut -f 2 -d ' ')
+
+	# use the pretty name if possible, otherwise re-use the same
+	title=$(get_pretty_name "$orig_title")
+
+	# tag it and escape it
+	title=$(sed_escape "$title $DEVMODE_TITLE")
+
+	# update the entry
+	entry=$(sed "/^title / s/ .*/ $title/" <<< "$entry")
+
+	# add cloud-init arg
+	local arg_ds=$(sed_escape "ds=nocloud\;s=$DEVMODE_NOCLOUD")
+	entry=$(sed "/^options / s/$/ $arg_ds/" <<< "$entry")
+
+	# set version to 1 less than template to be sorted after
+	orig_version=$(grep version <<< "$entry" | cut -f 2 -d ' ')
+	entry=$(sed "/^version / s/ .*/ $((orig_version-1))/" <<< "$entry")
+
+	echo "$entry"
+}
+
+# $1 - default
+# NB: we use a subshell to keep clean namespace
+get_pretty_name() (
+	local default="$1"
+
+	if [ -f /etc/os-release ]; then
+		. /etc/os-release
+	elif [ -f /usr/lib/os-release ]; then
+		. /usr/lib/os-release
+	fi
+
+	echo ${PRETTY_NAME:-$1}
+)
+
+# $1 - value to escape
+sed_escape() {
+	# http://stackoverflow.com/questions/407523
+	sed 's/[\/&]/\\&/g' <<< "$1"
+}
+
+main "$@"

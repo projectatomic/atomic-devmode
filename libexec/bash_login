@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# We check if we should take over the shell and if so, spawn
+# the main env initializing script.
+
+# are we in devmode?
+if [ -f /run/atomic-devmode ]; then
+
+    # start up tmux only if it's an interactive
+    # session on tty1 and we're not already in it
+
+    if [[ $- == *i* ]] && [[ $(tty) == /dev/tty1 ]] && [[ -z "$TMUX" ]]; then
+
+        # silence has-session or it will complain if the
+        # tmux server is not running yet
+        if tmux has-session -t devmode 2>/dev/null; then
+            tmux kill-session -t devmode
+        fi
+
+        exec tmux new-session -s devmode -n main \
+            /usr/libexec/atomic-devmode/init.sh
+    fi
+fi
