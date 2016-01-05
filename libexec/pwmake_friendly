@@ -1,0 +1,28 @@
+#!/bin/bash
+set -euo pipefail
+
+# This is a thin wrapper around pwmake which ensures that the password generated
+# only has friendly chars. We do this the "dumb" way: just keep re-running
+# pwmake until every char in the pw is friendly.
+
+# A nice set adapted from http://stackoverflow.com/questions/55556
+FRIENDLY_CHARS="ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#\$%^&*()-_=+[]{}:;\"',<.>/?:\\"
+
+main() {
+	pw=$(pwmake "$@")
+	until good_pw "$pw"; do
+		pw=$(pwmake "$@")
+	done
+	echo "$pw"
+}
+
+good_pw() {
+	pw="$1"
+	for (( i = 0; i < ${#pw}; i++ )); do
+		if [[ "$FRIENDLY_CHARS" != *"${pw:$i:1}"* ]]; then
+			return 1
+		fi
+	done
+}
+
+main "$@"

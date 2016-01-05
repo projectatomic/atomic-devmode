@@ -38,7 +38,7 @@ bootcmd:
   # stderr, but masked in the journal logs). So there is no
   # way for us to pick it up so we can print later on.
 
-  - pwmake 64
+  - /usr/libexec/atomic-devmode/pwmake_friendly 64
     | tee /run/atomic-devmode-root
     | passwd --stdin root >/dev/null
   - chmod 600 /run/atomic-devmode-root
