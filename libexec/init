@@ -37,6 +37,10 @@ EOF
 	fi
 
 	echo
+	echo "You can now log in the Cockpit console with"
+	echo "user \"root\" and the password above."
+	echo
+
 	exec bash
 }
 
