@@ -17,7 +17,8 @@ if [ -f /run/atomic-devmode ]; then
             tmux kill-session -t devmode
         fi
 
-        exec tmux new-session -s devmode -n main \
-            /usr/libexec/atomic-devmode/init
+        exec tmux -f /usr/lib/atomic-devmode/tmux.conf \
+            new-session -s devmode -n main \
+                /usr/libexec/atomic-devmode/init
     fi
 fi

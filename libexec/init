@@ -5,6 +5,8 @@ main() {
 	if [ $# -eq 0 ]; then
 		rm -f /run/atomic-devmode-cockpit.rc
 		tmux split-window -d -v -t devmode:main.0 "$0 bottom"
+		tmux new-window -d -n terminal
+		tmux new-window -d -n terminal
 		exec $0 top
 	else
 		${1}_pane
@@ -39,8 +41,12 @@ EOF
 	echo
 	echo "You can now log in the Cockpit console with"
 	echo "user \"root\" and the password above."
-	echo
 
+	echo
+	echo "Use Ctrl+Space to change active pane."
+	echo "Use Alt+1/2/3 to change active window."
+
+	echo
 	exec bash
 }
 
