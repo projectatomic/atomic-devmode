@@ -40,7 +40,7 @@ EOF
 
 	echo
 	echo "You can now log in the Cockpit console with"
-	echo "user \"root\" and the password above."
+	echo "the user \"root\" and the password above."
 
 	echo
 	echo "Use Ctrl+Space to change active pane."
