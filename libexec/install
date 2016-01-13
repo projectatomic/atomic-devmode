@@ -6,16 +6,22 @@ BLS_DIR="/boot/loader/entries/"
 DEVMODE_TITLE="Developer Mode"
 DEVMODE_NOCLOUD="/usr/lib/atomic-devmode/cloud-init."
 
+# NB: using local is cool, but do not call functions/programs in the
+# initialization step. Otherwise it won't exit even if we have errexit on.
+
 main() {
 
 	# read in the most updated BLS entry
-	local entry_filename=$(get_bls_entry)
+	local entry_filename
+	entry_filename=$(get_bls_entry)
 	echo "INFO: Using BLS entry file \"$entry_filename\" as template."
 
-	local entry_text=$(cat $entry_filename)
+	local entry_text
+	entry_text=$(cat $entry_filename)
 
 	# modify it for our needs
-	local new_entry_text=$(modify_bls_entry "$entry_text")
+	local new_entry_text
+	new_entry_text=$(modify_bls_entry "$entry_text")
 
 	# save it back to disk
 	local new_entry_filename="${entry_filename%.conf}-devmode.conf"
@@ -40,7 +46,8 @@ get_bls_entry() {
 	local new_entry
 	local version=-1
 	for new_entry in $(find "$BLS_DIR" -name '*.conf'); do
-		local new_version=$(grep version "$new_entry" | cut -f 2 -d ' ')
+		local new_version
+		new_version=$(grep version "$new_entry" | cut -f 2 -d ' ')
 		if [ $new_version -gt $version ]; then
 			local entry="$new_entry"
 			local version=$new_version
@@ -72,7 +79,8 @@ modify_bls_entry() {
 	entry=$(sed "/^title / s/ .*/ $title/" <<< "$entry")
 
 	# add cloud-init arg
-	local arg_ds=$(sed_escape "ds=nocloud\;s=$DEVMODE_NOCLOUD")
+	local arg_ds
+	arg_ds=$(sed_escape "ds=nocloud\;s=$DEVMODE_NOCLOUD")
 	entry=$(sed "/^options / s/$/ $arg_ds/" <<< "$entry")
 
 	# set version to 1 less than template to be sorted after
