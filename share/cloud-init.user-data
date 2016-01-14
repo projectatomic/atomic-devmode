@@ -37,7 +37,7 @@ bootcmd:
   # safe. Seems like a bug in cloud-init.
 
   - mkdir -p /etc/systemd/system/getty@tty1.service.d
-  - ln -sf /usr/lib/atomic-devmode/getty-override.conf
+  - ln -sf /usr/share/atomic-devmode/getty-override.conf
     /run/atomic-devmode-getty-override.conf
   - ln -sf /run/atomic-devmode-getty-override.conf
     /etc/systemd/system/getty@tty1.service.d/override.conf

@@ -25,7 +25,7 @@ IFS=$'\n\t'
 
 BLS_DIR="/boot/loader/entries/"
 DEVMODE_TITLE="Developer Mode"
-DEVMODE_NOCLOUD="/usr/lib/atomic-devmode/cloud-init."
+DEVMODE_NOCLOUD="/usr/share/atomic-devmode/cloud-init."
 
 # NB: using local is cool, but do not call functions/programs in the
 # initialization step. Otherwise it won't exit even if we have errexit on.

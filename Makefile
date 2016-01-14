@@ -22,13 +22,13 @@
 all:
 	@echo "Nothing to make."
 
-LIB = $(DESTDIR)/usr/lib/atomic-devmode
+SHARE = $(DESTDIR)/usr/share/atomic-devmode
 LIBEXEC = $(DESTDIR)/usr/libexec/atomic-devmode
 
 .PHONY: install
 install:
-	install -d -m 755 $(LIB)
-	install -m 644 lib/* $(LIB)
+	install -d -m 755 $(SHARE)
+	install -m 644 share/* $(SHARE)
 	install -d -m 755 $(LIBEXEC)
 	install -m 755 libexec/* $(LIBEXEC)
 
