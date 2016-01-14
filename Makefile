@@ -37,5 +37,7 @@ archive:
 	@if ! git diff-index --quiet HEAD; then \
 		echo "WARNING: not all changes have been committed."; \
 	fi
-	git archive --format=tar.gz --prefix=atomic-devmode/ HEAD > \
-		atomic-devmode.tar.gz
+	@REF=$${REF:-HEAD}; \
+	git archive --format=tar.gz --prefix=atomic-devmode/ \
+		$$REF > atomic-devmode.tar.gz && \
+	echo "$$REF > atomic-devmode.tar.gz"
