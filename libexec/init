@@ -23,15 +23,27 @@
 set -euo pipefail
 
 main() {
+
 	if [ $# -eq 0 ]; then
 		rm -f /run/atomic-devmode-cockpit.rc
 		tmux split-window -d -v -t devmode:main.0 "$0 bottom"
-		tmux new-window -d -n terminal
-		tmux new-window -d -n terminal
+		tmux new-window -d -n terminal "$0 terminal"
+		tmux new-window -d -n terminal "$0 terminal"
 		exec $0 top
-	else
-		${1}_pane
 	fi
+
+	# Let's set up the specific pane we were called for. NB: we turn off errexit
+	# here before setting up the pane because if something does go wrong, it
+	# would be more useful to keep the pane open to see the error output. The
+	# downside is that we have to be extra careful in how we treat commands that
+	# may fail.
+	set +e
+	${1}_pane
+
+	# time to become a shell that the user can type in
+	# NB: turn off (the rest of) strict mode so we act like a normal shell
+	set +uo pipefail
+	exec bash
 }
 
 top_pane() {
@@ -68,7 +80,6 @@ EOF
 	echo "Use Alt+1/2/3 to change active window."
 
 	echo
-	exec bash
 }
 
 get_external_ip() {
@@ -96,7 +107,11 @@ bottom_pane() {
 	atomic run cockpit/ws || rc=$?
 	echo $rc > /run/atomic-devmode-cockpit.rc
 	journalctl -f
-	exec bash
+}
+
+terminal_pane() {
+	echo "Use Alt+1/2/3 to change active window."
+	echo
 }
 
 main "$@"
