@@ -48,3 +48,6 @@ if [ -f /run/atomic-devmode ]; then
                 /usr/libexec/atomic-devmode/init
     fi
 fi
+
+# drop strict mode so that normal shells don't inherit it
+set +euo pipefail
