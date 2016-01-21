@@ -23,7 +23,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-BLS_DIR="/boot/loader/entries/"
+# The BLS dir we operate on is the one that *will* become the new loader
+# symlink, not necessarily the current one.
+BLS_DIR="/boot/loader.${_OSTREE_GRUB2_BOOTVERSION}/entries/"
+
 DEVMODE_TITLE="Developer Mode"
 DEVMODE_NOCLOUD="/usr/share/atomic-devmode/cloud-init."
 
@@ -32,10 +35,21 @@ DEVMODE_NOCLOUD="/usr/share/atomic-devmode/cloud-init."
 
 main() {
 
+	# check which hook called us
+	if [[ $0 == *+ ]]; then
+		main_add_entry
+	elif [[ $0 == *- ]]; then
+		main_remove_entry
+	else
+		echo "ERROR: This script should not be called directly." >&2
+	fi
+}
+
+main_add_entry() {
+
 	# read in the most updated BLS entry
 	local entry_filename
 	entry_filename=$(get_bls_entry)
-	echo "INFO: Using BLS entry file \"$entry_filename\" as template."
 
 	local entry_text
 	entry_text=$(cat $entry_filename)
@@ -47,18 +61,18 @@ main() {
 	# save it back to disk
 	local new_entry_filename="${entry_filename%.conf}-devmode.conf"
 	echo "$new_entry_text" > "$new_entry_filename"
+}
 
-	# Generate a new grub config. NB: We manually override the bootversion for
-	# now because ostree versions before v2016.1 failed to detect the version
-	# properly (see https://github.com/GNOME/ostree/pull/165). We can probably
-	# drop this patch later on.
-	echo "INFO: Regenerating GRUB2 config"
-	local bootver; bootver=$(readlink /boot/loader)
-	_OSTREE_GRUB2_BOOTVERSION=${bootver#*.} \
-		grub2-mkconfig -o /boot/loader/grub.cfg
+main_remove_entry() {
 
-	# and now we can get rid of our file
-	rm "$new_entry_filename"
+	# make sure the directory exists and is writeable
+	if [ ! -w "$BLS_DIR" ]; then
+		echo "ERROR: Directory \"$BLS_DIR\" not writeable." >&2
+		exit 1
+	fi
+
+	# remove any leftover devmode BLS entries
+	find "$BLS_DIR" -name '*-devmode.conf' -delete
 }
 
 get_bls_entry() {

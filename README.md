@@ -14,8 +14,8 @@ downloaded and started.
 
 It is meant to be included in the initial tree installed by
 the `%ostreesetup` kickstart command. The kickstart should
-then (in its `%post`) call out to the `install` script in
-order to have the GRUB 2 menu item created.
+then (in its `%post`) call `bootentry add` in order to have
+the GRUB 2 menu item created.
 
 ### Trying it out
 
@@ -53,7 +53,4 @@ navigating the panes and terminals:
 ### Memoryless
 
 Once booted in Developer Mode, rebooting into a normal tree
-should not leave any lasting effects. Additionally, any
-usage of `atomic host upgrade/rebase/rollback` or directly
-calling `grub2-mkconfig -o /boot/loader/grub.cfg` will wipe
-out the Developer Mode GRUB 2 boot menu item.
+should not leave any lasting effects.
