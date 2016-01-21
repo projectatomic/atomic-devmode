@@ -39,6 +39,10 @@ if [ -f /run/atomic-devmode ]; then
             tmux kill-session -t devmode
         fi
 
+        # before entering tmux for good, let's shut up dmesg so it doesn't
+        # pollute the tmux screen
+        dmesg -n 1
+
         exec tmux -f /usr/share/atomic-devmode/tmux.conf \
             new-session -s devmode -n main \
                 /usr/libexec/atomic-devmode/init
