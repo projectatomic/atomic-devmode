@@ -32,6 +32,11 @@ main() {
 		exec $0 top
 	fi
 
+	# We trap SIGINT here so that if the user presses ^C (e.g. to exit
+	# journalctl), the signal will kill the children but not us, so that we
+	# reach the bash prompt.
+	trap 'true' SIGINT
+
 	# Let's set up the specific pane we were called for. NB: we turn off errexit
 	# here before setting up the pane because if something does go wrong, it
 	# would be more useful to keep the pane open to see the error output. The

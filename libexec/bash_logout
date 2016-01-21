@@ -24,11 +24,11 @@ set -euo pipefail
 
 # Make sure .bash_login is removed on exit. This does mean
 # that if the user exits our env, they will no longer
-# automacally enter our env on the next auto-login.
+# automatically enter our env on the next auto-login.
 
 # If we don't want this behaviour (ie. we want to restart
 # the env everytime), then we should move off this cleanup
-# procedure to eg. a systemd service that runs at shutdown.
+# procedure to e.g. a systemd service that runs at shutdown.
 
 rm -f /root/.bash_login
 rm -f /root/.bash_logout
