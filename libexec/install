@@ -48,9 +48,14 @@ main() {
 	local new_entry_filename="${entry_filename%.conf}-devmode.conf"
 	echo "$new_entry_text" > "$new_entry_filename"
 
-	# generate new grub config
+	# Generate a new grub config. NB: We manually override the bootversion for
+	# now because ostree versions before v2016.1 failed to detect the version
+	# properly (see https://github.com/GNOME/ostree/pull/165). We can probably
+	# drop this patch later on.
 	echo "INFO: Regenerating GRUB2 config"
-	grub2-mkconfig -o /boot/loader/grub.cfg
+	local bootver; bootver=$(readlink /boot/loader)
+	_OSTREE_GRUB2_BOOTVERSION=${bootver#*.} \
+		grub2-mkconfig -o /boot/loader/grub.cfg
 
 	# and now we can get rid of our file
 	rm "$new_entry_filename"

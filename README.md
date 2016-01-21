@@ -17,20 +17,6 @@ the `%ostreesetup` kickstart command. The kickstart should
 then (in its `%post`) call out to the `install` script in
 order to have the GRUB 2 menu item created.
 
-NB: There is a bug in versions of ostree prior to v2016.1
-which causes an invalid `grub.cfg` file to be generated if
-your current bootversion is 1. The
-[fix](https://github.com/GNOME/ostree/pull/165) for this
-is part of v2016.1. On older ostree versions, if you are
-manually calling `install` to get the boot menu added and
-your bootversion is currently 1 (i.e.  `/boot/loader` points
-to `loader.1`), then you can work around it by setting the
-`_OSTREE_GRUB2_BOOTVERSION` env var to 1 like so:
-
-```
-_OSTREE_GRUB2_BOOTVERSION=1 /usr/libexec/atomic-devmode/install
-```
-
 ### Trying it out
 
 Images built with this package can be found
