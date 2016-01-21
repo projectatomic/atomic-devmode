@@ -48,14 +48,21 @@ main() {
 
 top_pane() {
 
+	echo    "Welcome to Atomic Developer Mode!"
+	echo
+
+	echo    "Password for root:  $(cat /run/atomic-devmode-root)"
+
+	echo -n "IP address:         < waiting... > "
+
 	ip=$(get_external_ip)
+	if [ $? -ne 0 ]; then
+		echo
+		echo "ERROR: Could not retrieve IP."
+		return
+	fi
 
-	cat << EOF
-Welcome to Atomic Developer Mode!
-
-Password for root:  $(cat /run/atomic-devmode-root)
-IP address:         $ip
-EOF
+	echo -e "\rIP address:         $ip"
 
 	echo -n "Cockpit console:    < downloading... > "
 
@@ -67,31 +74,38 @@ EOF
 	if [ "$rc" != 0 ]; then
 		echo
 		echo "ERROR: Could not start cockpit container."
-	else
-		echo -e "\rCockpit console:    https://$ip:9090/"
+		return
 	fi
 
+	echo -e "\rCockpit console:    https://$ip:9090/"
 	echo
+
 	echo "You can now log in the Cockpit console with"
 	echo "the user \"root\" and the password above."
-
 	echo
+
 	echo "Use Ctrl+Space to change active pane."
 	echo "Use Alt+1/2/3 to change active window."
-
 	echo
 }
 
 get_external_ip() {
 
+	# let's wait until the docker service is fully up and running
+	while [[ $(systemctl show -p SubState docker.service) != *=running ]]; do
+		sleep 0.5
+	done
+
 	# get IP of docker bridge if present and running
-	if [ -e /sys/class/net/docker0 ] && \
-	   [ "$(cat /sys/class/net/docker0/carrier)" == 1 ]; then
-		docker_ip=$(ip -f inet -o addr show docker0 | cut -d\  -f 7 | cut -d/ -f 1)
+	local docker_ip
+	if nmcli -t -f NAME,STATE con show | grep -q docker0:activated; then
+		docker_ip=$(nmcli -t con show docker0 | grep ipv4.addresses:)
+		docker_ip=${docker_ip#*:}
+		docker_ip=${docker_ip%/*}
 	fi
 
 	# go through all IPs that are not docker and just pick the first one
-	external_ip="N/A"
+	local external_ip="N/A"
 	for ip in $(hostname -I); do
 		if [ "$ip" != "$docker_ip" ]; then
 			external_ip=$ip
