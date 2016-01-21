@@ -123,9 +123,8 @@ modify_bls_entry() {
 	arg_ds=$(sed_escape "ds=nocloud\;s=$DEVMODE_NOCLOUD")
 	entry=$(sed "/^options / s/$/ $arg_ds/" <<< "$entry")
 
-	# set version to 1 less than template to be sorted after
-	orig_version=$(grep version <<< "$entry" | cut -f 2 -d ' ')
-	entry=$(sed "/^version / s/ .*/ $((orig_version-1))/" <<< "$entry")
+	# set version to 0 so we're always last
+	entry=$(sed "/^version / s/ .*/ 0/" <<< "$entry")
 
 	echo "$entry"
 }
