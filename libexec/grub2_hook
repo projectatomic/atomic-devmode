@@ -47,7 +47,7 @@ main() {
 
 main_add_entry() {
 
-	# read in the most updated BLS entry
+	# read in the most updated BLS entry that has atomic-devmode
 	local entry_filename
 	entry_filename=$(get_bls_entry)
 
@@ -83,23 +83,48 @@ get_bls_entry() {
 		exit 1
 	fi
 
-	local new_entry
-	local version=-1
-	for new_entry in $(find "$BLS_DIR" -name '*.conf'); do
-		local new_version
-		new_version=$(grep version "$new_entry" | cut -f 2 -d ' ')
-		if [ $new_version -gt $version ]; then
-			local entry="$new_entry"
-			local version=$new_version
+	local best_entry
+	local best_version=-1
+
+	local entry
+	for entry in $(find "$BLS_DIR" -name '*.conf'); do
+
+		local ostree=$(get_bls_entry_ostree "$entry")
+		if ! ostree_has_devmode "$ostree"; then
+			continue
+		fi
+
+		local version=$(get_bls_entry_version "$entry")
+		if [ $version -gt $best_version ]; then
+			best_entry="$entry"
+			best_version=$version
 		fi
 	done
 
-	if [ -z "$entry" ]; then
+	if [ -z "$best_entry" ]; then
 		echo "ERROR: No BLS entries found in \"$BLS_DIR\"." >&2
 		exit 1
 	fi
 
-	echo $entry
+	echo $best_entry
+}
+
+get_bls_entry_version() {
+	local entry=$(cat "$1")
+	local line=$(echo "$entry" | grep ^version)
+	echo "${line#* }"
+}
+
+get_bls_entry_ostree() {
+	local entry=$(cat "$1")
+	local line=$(echo "$entry" | grep ^options)
+	line=${line#* ostree=}
+	echo "${line%% *}"
+}
+
+ostree_has_devmode() {
+	[ -f "${1}${DEVMODE_NOCLOUD}meta-data" ] && \
+	[ -f "${1}${DEVMODE_NOCLOUD}user-data" ]
 }
 
 # $1 - original entry
