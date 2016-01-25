@@ -96,10 +96,7 @@ top_pane() {
 
 get_external_ip() {
 
-	# let's wait until the docker service is fully up and running
-	while [[ $(systemctl show -p SubState docker.service) != *=running ]]; do
-		sleep 0.5
-	done
+	wait_for_docker
 
 	# get IP of docker bridge if present and running
 	local docker_ip
@@ -122,10 +119,25 @@ get_external_ip() {
 }
 
 bottom_pane() {
+
+	wait_for_docker
+
 	rc=0
 	atomic run cockpit/ws || rc=$?
 	echo $rc > /run/atomic-devmode-cockpit.rc
 	journalctl -f
+}
+
+wait_for_docker() {
+
+	# block until the docker service is running or failing
+	while [[ $(systemctl show -p SubState docker.service) != *=running ]] && \
+	      [[ $(systemctl show -p SubState docker.service) != *=failed ]]; do
+		sleep 0.5
+	done
+
+	# exit with the service code
+	systemctl status docker.service &> /dev/null
 }
 
 terminal_pane() {
