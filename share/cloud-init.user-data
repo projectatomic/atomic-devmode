@@ -42,6 +42,7 @@ bootcmd:
   - ln -sf /run/atomic-devmode-getty-override.conf
     /etc/systemd/system/getty@tty1.service.d/override.conf
   - systemctl daemon-reload
+  - systemctl restart getty@tty1.service
 
   - ln -sf /usr/libexec/atomic-devmode/bash_login
     /root/.bash_login
