@@ -56,6 +56,11 @@ top_pane() {
 	echo    "Welcome to Atomic Developer Mode!"
 	echo
 
+	if [ ! -r /run/atomic-devmode-root ]; then
+		echo "ERROR: Cannot read /run/atomic-devmode-root"
+		return
+	fi
+
 	echo    "Password for root:  $(cat /run/atomic-devmode-root)"
 
 	echo -n "IP address:         < waiting... > "
@@ -97,9 +102,12 @@ top_pane() {
 get_external_ip() {
 
 	wait_for_docker
+	if [ $? -ne 0 ]; then
+		return 1
+	fi
 
 	# get IP of docker bridge if present and running
-	local docker_ip
+	local docker_ip=
 	if nmcli -t -f NAME,STATE con show | grep -q docker0:activated; then
 		docker_ip=$(nmcli -t con show docker0 | grep ipv4.addresses:)
 		docker_ip=${docker_ip#*:}
@@ -121,6 +129,11 @@ get_external_ip() {
 bottom_pane() {
 
 	wait_for_docker
+	if [ $? -ne 0 ]; then
+		echo
+		echo "ERROR: The docker service failed to start."
+		return 1
+	fi
 
 	rc=0
 	atomic run cockpit/ws || rc=$?
