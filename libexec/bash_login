@@ -47,6 +47,11 @@ if [ -f /run/atomic-devmode ]; then
             new-session -s devmode -n main \
                 /usr/libexec/atomic-devmode/init
     fi
+
+    # provide an alias to print the root password to the command line,
+    # in case someone scrolls the top pane too far and doesn't know how
+    # to get back with tmux.
+    alias showpasswd='cat /run/atomic-devmode-root'
 fi
 
 # drop strict mode so that normal shells don't inherit it
