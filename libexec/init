@@ -94,9 +94,9 @@ top_pane() {
 	echo "the user \"root\" and the password above."
 	echo
 
-    echo "You can retrieve the password for the \"root\""
-    echo "user at any time with the command \"showpasswd\""
-    echo
+	echo "You can retrieve the password for the \"root\""
+	echo "user at any time with the command \"showpasswd\"."
+	echo
 
 	echo "Use Ctrl+Space to change active pane."
 	echo "Use Alt+1/2/3 to change active window."
