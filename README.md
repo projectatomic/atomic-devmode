@@ -21,6 +21,8 @@ the GRUB 2 menu item created.
 
 Images built with this package can be found
 [here](https://jlebon.fedorapeople.org/atomic-devmode/latest/).
+You can also build the package and compose your own tree on
+which to rebase. See [HACKING.md](HACKING.md) for more details.
 
 ### GRUB 2 timeout
 
