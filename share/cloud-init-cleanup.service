@@ -1,0 +1,9 @@
+[Unit]
+Description=Atomic Developer Mode Cloud-Init Cleanup
+After=cloud-final.service
+Requires=cloud-config.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/lib/cloud/
+ExecStart=/usr/bin/rm -Rf instance/
