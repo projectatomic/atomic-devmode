@@ -22,6 +22,16 @@
 
 ssh_pwauth: true
 
+# This is to hack around cloud-init's logic: without a users
+# stanza, cloud-init will use the default_user configuration
+# in the distro's config (e.g. on Fedora, it will create a
+# 'fedora' user). We create a user list with just root,
+# which really is a no-op since root already exists, but it
+# won't fall back on the default.
+
+users:
+  - root
+
 # Really, only the getty stuff needs to be in bootcmd. The
 # rest can safely be executed later in runcmd. However,
 # there seems to be a bug in cloud-init which for some
