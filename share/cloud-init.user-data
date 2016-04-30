@@ -41,20 +41,6 @@ users:
 
 bootcmd:
 
-  # Add a cleanup service so that the instance info gets
-  # deleted. This is required because if the user also
-  # attached an external device containing cloud-init info,
-  # the instance-id from the device will override our
-  # instance-id. Thus, per-instance modules will not be
-  # rerun if the user reboots in non-devmode. Really, we
-  # only need to do this when /var/lib/cloud/data/instance
-  # != ii-devmode-cloud, but as far as devmode is concerned,
-  # we don't care if modules get rerun on every devmode
-  # boot.
-
-  - ln -sf /usr/share/atomic-devmode/cloud-init-cleanup.service
-    /run/systemd/system/cloud-init-cleanup.service
-
   # We use /run as a 'bridge' so that the override only
   # lasts this boot. NB: for some reason, cloud-init (at
   # least as of 0.7.6) runs these commands twice (once at
@@ -67,13 +53,11 @@ bootcmd:
   - ln -sf /run/atomic-devmode-getty-override.conf
     /etc/systemd/system/getty@tty1.service.d/override.conf
 
-  # make systemd see the override and the new service
+  # make systemd see the override
   - systemctl daemon-reload
 
-  # restart the getty service if it's already running and
-  # activate cleanup service
+  # restart the getty service if it's already running
   - systemctl try-restart getty@tty1.service
-  - systemctl start --no-block cloud-init-cleanup.service
 
   - ln -sf /usr/libexec/atomic-devmode/bash_login
     /root/.bash_login
