@@ -27,8 +27,11 @@ IFS=$'\n\t'
 # symlink, not necessarily the current one.
 BLS_DIR="/boot/loader.${_OSTREE_GRUB2_BOOTVERSION}/entries/"
 
-DEVMODE_TITLE="Developer Mode"
-DEVMODE_NOCLOUD="/usr/share/atomic-devmode/cloud-init."
+GRUB2_ENTRY_TITLE="Developer Mode"
+
+NOCLOUD_SEEDFROM="/usr/share/atomic-devmode/cloud-init."
+NOCLOUD_HOSTNAME="localhost"
+NOCLOUD_INSTANCE_ID="ii-devmode-nocloud"
 
 # NB: using local is cool, but do not call functions/programs in the
 # initialization step. Otherwise it won't exit even if we have errexit on.
@@ -123,8 +126,8 @@ get_bls_entry_ostree() {
 }
 
 ostree_has_devmode() {
-	[ -f "${1}${DEVMODE_NOCLOUD}meta-data" ] && \
-	[ -f "${1}${DEVMODE_NOCLOUD}user-data" ]
+	[ -f "${1}${NOCLOUD_SEEDFROM}meta-data" ] && \
+	[ -f "${1}${NOCLOUD_SEEDFROM}user-data" ]
 }
 
 # $1 - original entry
@@ -138,15 +141,19 @@ modify_bls_entry() {
 	title=$(get_pretty_name "$orig_title")
 
 	# tag it and escape it
-	title=$(sed_escape "$title $DEVMODE_TITLE")
+	title=$(sed_escape "$title $GRUB2_ENTRY_TITLE")
 
 	# update the entry
 	entry=$(sed "/^title / s/ .*/ $title/" <<< "$entry")
 
 	# add cloud-init arg
-	local arg_ds
-	arg_ds=$(sed_escape "ds=nocloud\;s=$DEVMODE_NOCLOUD")
-	entry=$(sed "/^options / s/$/ $arg_ds/" <<< "$entry")
+	local args="ds=nocloud"
+	for arg in "h=$NOCLOUD_HOSTNAME" \
+	           "i=$NOCLOUD_INSTANCE_ID" \
+	           "s=$NOCLOUD_SEEDFROM"; do
+		args=${args}$(sed_escape "\;$arg")
+	done
+	entry=$(sed "/^options / s/$/ $args/" <<< "$entry")
 
 	# set version to 0 so we're always last
 	entry=$(sed "/^version / s/ .*/ 0/" <<< "$entry")

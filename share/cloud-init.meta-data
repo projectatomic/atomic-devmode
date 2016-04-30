@@ -18,5 +18,11 @@
 # Public License along with atomic-devmode. If not, see
 # <http://www.gnu.org/licenses/>.
 
+# NB: These values don't actually end up used because
+# cloud-init will give precedence to the id & hostname from
+# the kernel cmdline. But cloud-init does require a
+# meta-data file to exist alongside the user-data, so meh...
+# might as well replop the same info here.
+
 instance-id: ii-devmode-nocloud
 local-hostname: localhost
