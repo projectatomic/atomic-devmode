@@ -30,7 +30,8 @@ ssh_pwauth: true
 # won't fall back on the default.
 
 users:
-  - root
+  - name: root
+    lock-passwd: false
 
 # Really, only the getty stuff needs to be in bootcmd. The
 # rest can safely be executed later in runcmd. However,
