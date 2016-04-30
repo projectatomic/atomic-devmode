@@ -31,7 +31,7 @@ GRUB2_ENTRY_TITLE="Developer Mode"
 
 NOCLOUD_SEEDFROM="/usr/share/atomic-devmode/cloud-init."
 NOCLOUD_HOSTNAME="localhost"
-NOCLOUD_INSTANCE_ID="ii-devmode-nocloud"
+NOCLOUD_INSTANCE_ID="devmode"
 
 # NB: using local is cool, but do not call functions/programs in the
 # initialization step. Otherwise it won't exit even if we have errexit on.
