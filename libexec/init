@@ -127,7 +127,11 @@ get_external_ip() {
 		fi
 	done
 
-	echo $external_ip
+    if [ "$external_ip" == "N/A" ]; then
+    	return 1
+    else
+    	echo $external_ip
+    fi
 }
 
 bottom_pane() {
