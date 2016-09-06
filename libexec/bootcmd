@@ -22,23 +22,27 @@
 
 set -euo pipefail
 
+SHARE=/usr/share/atomic-devmode
+LIBEXEC=/usr/libexec/atomic-devmode
+
 # Really, only the getty stuff needs to be in bootcmd. The
 # rest can safely be executed later in runcmd. However,
 # there seems to be a bug in cloud-init which for some
 # reason doesn't let runcmd run on every boot, even after
 # overriding the frequency to 'always'.
 
-# We use /run as a 'bridge' so that the override only lasts
-# this boot. NB: for some reason, cloud-init (at least as of
-# 0.7.6) runs these commands twice (once at init-local and
-# again at init), so we use -f to be safe. Seems like a bug
-# in cloud-init.
+# witness file to tell scripts we're in devmode
+touch /run/atomic-devmode
 
-mkdir -p /etc/systemd/system/getty@tty1.service.d
-ln -sf /usr/share/atomic-devmode/getty-override.conf \
-	/run/atomic-devmode-getty-override.conf
-ln -sf /run/atomic-devmode-getty-override.conf \
-	/etc/systemd/system/getty@tty1.service.d/override.conf
+# 1. set up getty override
+
+# We use a bind mount here so that it's only valid for this
+# boot.
+
+getty_override_dir=/etc/systemd/system/getty@tty1.service.d
+mkdir -p $getty_override_dir
+touch $getty_override_dir/override.conf
+mount --bind $SHARE/getty-override.conf $getty_override_dir/override.conf
 
 # make systemd see the override
 systemctl daemon-reload
@@ -46,11 +50,13 @@ systemctl daemon-reload
 # restart the getty service if it's already running
 systemctl try-restart getty@tty1.service
 
-ln -sf /usr/libexec/atomic-devmode/bash_login /root/.bash_login
-ln -sf /usr/libexec/atomic-devmode/bash_logout /root/.bash_logout
+# 2. set up bash login
 
-# this is for scripts to check to know if we're in an atomic-devmode boot
-touch /run/atomic-devmode
+# Here too, use bind mount to make this temporary.
+touch /root/.bash_login
+mount --bind $LIBEXEC/bash_login /root/.bash_login
+
+# 3. root password
 
 # We autogen a root password and change it. Speaking with
 # cloud-init devs, it has the functionality to autogen a
@@ -58,7 +64,7 @@ touch /run/atomic-devmode
 # but masked in the journal logs). So there is no way for us
 # to pick it up so we can print later on.
 
-/usr/libexec/atomic-devmode/pwmake_friendly 64 \
+$LIBEXEC/pwmake_friendly 64 \
 	| tee /run/atomic-devmode-root \
 	| passwd --stdin root >/dev/null
 chmod 600 /run/atomic-devmode-root
