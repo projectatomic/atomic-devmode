@@ -69,3 +69,21 @@ $LIBEXEC/pwmake_friendly 64 \
 	| passwd --stdin root >/dev/null
 chmod 600 /run/atomic-devmode-root
 passwd -u root >/dev/null
+
+# mark the password as expired so that cockpit requests a
+# password reset on first login
+chage -d 0 root
+
+# 4. sshd configuration
+
+# We have to make sure that sshd accepts challenge-response
+# authentications so that password resets can be carried out
+# over the Cockpit login. We bind mount a copy over the
+# original config so that we don't affect it.
+
+cp -a /etc/ssh/sshd_config /run/atomic-devmode-sshd-config # copy selinux label
+sed -i 's/^\(ChallengeResponseAuthentication\) .*/\1 yes/I' \
+	/run/atomic-devmode-sshd-config
+mount --bind /run/atomic-devmode-sshd-config /etc/ssh/sshd_config
+
+systemctl try-restart sshd.service
