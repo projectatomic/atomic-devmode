@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# Copyright (C) 2015-2016 Red Hat, Inc.
+#
+# This file is part of atomic-devmode.
+#
+# atomic-devmode is free software: you can redistribute it
+# and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# atomic-devmode is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General
+# Public License along with atomic-devmode. If not, see
+# <http://www.gnu.org/licenses/>.
+
+set -euo pipefail
+
+# Really, only the getty stuff needs to be in bootcmd. The
+# rest can safely be executed later in runcmd. However,
+# there seems to be a bug in cloud-init which for some
+# reason doesn't let runcmd run on every boot, even after
+# overriding the frequency to 'always'.
+
+# We use /run as a 'bridge' so that the override only lasts
+# this boot. NB: for some reason, cloud-init (at least as of
+# 0.7.6) runs these commands twice (once at init-local and
+# again at init), so we use -f to be safe. Seems like a bug
+# in cloud-init.
+
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+ln -sf /usr/share/atomic-devmode/getty-override.conf \
+	/run/atomic-devmode-getty-override.conf
+ln -sf /run/atomic-devmode-getty-override.conf \
+	/etc/systemd/system/getty@tty1.service.d/override.conf
+
+# make systemd see the override
+systemctl daemon-reload
+
+# restart the getty service if it's already running
+systemctl try-restart getty@tty1.service
+
+ln -sf /usr/libexec/atomic-devmode/bash_login /root/.bash_login
+ln -sf /usr/libexec/atomic-devmode/bash_logout /root/.bash_logout
+
+# this is for scripts to check to know if we're in an atomic-devmode boot
+touch /run/atomic-devmode
+
+# We autogen a root password and change it. Speaking with
+# cloud-init devs, it has the functionality to autogen a
+# passwd, but the pw just gets lost (it's printed on stderr,
+# but masked in the journal logs). So there is no way for us
+# to pick it up so we can print later on.
+
+/usr/libexec/atomic-devmode/pwmake_friendly 64 \
+	| tee /run/atomic-devmode-root \
+	| passwd --stdin root >/dev/null
+chmod 600 /run/atomic-devmode-root
+passwd -u root >/dev/null
