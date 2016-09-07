@@ -50,11 +50,16 @@ systemctl daemon-reload
 # restart the getty service if it's already running
 systemctl try-restart getty@tty1.service
 
-# 2. set up bash login
+# 2. set up bash profile
 
 # Here too, use bind mount to make this temporary.
-touch /root/.bash_login
-mount --bind $LIBEXEC/bash_login /root/.bash_login
+
+if ! test -f /root/.bash_profile; then
+	touch /root/.bash_profile
+fi
+cp -a /root/.bash_profile /run/atomic-devmode-bash-profile # copy selinux label
+cat $LIBEXEC/bash_profile >> /run/atomic-devmode-bash-profile
+mount --bind /run/atomic-devmode-bash-profile /root/.bash_profile
 
 # 3. root password
 
