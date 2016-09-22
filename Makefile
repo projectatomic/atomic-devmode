@@ -39,5 +39,5 @@ archive:
 	fi
 	@REF=$${REF:-HEAD}; \
 	git archive --format=tar.gz --prefix=atomic-devmode/ \
-		$$REF > atomic-devmode.tar.gz && \
-	echo "$$REF > atomic-devmode.tar.gz"
+		$$REF > atomic-devmode-$$REF.tar.gz && \
+	echo "$$REF > atomic-devmode-$$REF.tar.gz"
