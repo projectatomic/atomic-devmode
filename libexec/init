@@ -61,9 +61,9 @@ top_pane() {
 		return
 	fi
 
-	echo    "Password for root:  $(cat /run/atomic-devmode-root)"
+	echo    "Temporary password for root:  $(cat /run/atomic-devmode-root)"
 
-	echo -n "IP address:         < waiting... > "
+	echo -n "IP address:                   < waiting... > "
 
 	ip=$(get_external_ip)
 	if [ $? -ne 0 ]; then
@@ -72,9 +72,9 @@ top_pane() {
 		return
 	fi
 
-	echo -e "\rIP address:         $ip"
+	echo -e "\rIP address:                   $ip"
 
-	echo -n "Cockpit console:    < downloading... > "
+	echo -n "Cockpit console:              < downloading... > "
 
 	while [ ! -f /run/atomic-devmode-cockpit.rc ]; do
 		sleep 1
@@ -87,7 +87,7 @@ top_pane() {
 		return
 	fi
 
-	echo -e "\rCockpit console:    https://$ip:9090/"
+	echo -e "\rCockpit console:              https://$ip:9090/"
 	echo
 
 	echo "You can now log in the Cockpit console with"

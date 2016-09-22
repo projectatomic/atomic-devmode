@@ -75,10 +75,6 @@ $LIBEXEC/pwmake_friendly 64 \
 chmod 600 /run/atomic-devmode-root
 passwd -u root >/dev/null
 
-# mark the password as expired so that cockpit requests a
-# password reset on first login
-chage -d 0 root
-
 # 4. sshd configuration
 
 # We have to make sure that sshd accepts challenge-response

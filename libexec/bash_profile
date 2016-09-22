@@ -37,6 +37,12 @@ if [[ $- == *i* ]] && [[ $(tty) == /dev/tty1 ]] && [[ -z "${TMUX-}" ]]; then
     # it doesn't pollute the tmux screen
     dmesg -n 1
 
+    # mark the password as expired so that cockpit requests
+    # a password reset on first login -- we can't do this in
+    # bootcmd otherwise agetty will prompt for the password
+    # reset during autologin
+    chage -d 0 root
+
     exec tmux -f /usr/share/atomic-devmode/tmux.conf \
         new-session -s devmode -n main \
             /usr/libexec/atomic-devmode/init
