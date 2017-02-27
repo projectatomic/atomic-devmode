@@ -42,14 +42,9 @@ main() {
 		rm -f "$GRUB/99_devmode-"
 	fi
 
-	# Generate a new grub config. NB: We manually override the bootversion for
-	# now because ostree versions before v2016.1 failed to detect the version
-	# properly (see https://github.com/GNOME/ostree/pull/165). We can probably
-	# drop this patch later on.
-	local bootver
-	bootver=$(readlink /boot/loader)
-	_OSTREE_GRUB2_BOOTVERSION=${bootver#*.} \
-	        grub2-mkconfig -o /boot/loader/grub.cfg
+	# generate a new grub config
+	grub2-mkconfig -o /boot/loader/grub.cfg.new
+	mv /boot/loader/grub.cfg{.new,}
 }
 
 main "$@"
