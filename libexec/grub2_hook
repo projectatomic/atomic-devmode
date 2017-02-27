@@ -23,9 +23,18 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# The BLS dir we operate on is the one that *will* become the new loader
-# symlink, not necessarily the current one.
-BLS_DIR="/boot/loader.${_OSTREE_GRUB2_BOOTVERSION}/entries/"
+# If ostree kicked off the mkconfig, then most likely we're targeting a
+# new BLS dir -- pick it up from the env var it sets. Otherwise, it may
+# be user triggered, so we just target the current loader config.
+
+if [ -n "${_OSTREE_GRUB2_BOOTVERSION:-}" ]; then
+	target_bootver=${_OSTREE_GRUB2_BOOTVERSION}
+else
+	current_bootver=$(readlink /boot/loader)
+	target_bootver=${current_bootver#*.}
+fi
+
+BLS_DIR="/boot/loader.$target_bootver/entries/"
 
 GRUB2_ENTRY_TITLE="Developer Mode"
 
