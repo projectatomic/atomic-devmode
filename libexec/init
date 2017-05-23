@@ -144,7 +144,8 @@ bottom_pane() {
 	fi
 
 	rc=0
-	atomic run cockpit/ws || rc=$?
+	(atomic install cockpit/ws &&
+	 atomic run cockpit/ws) || rc=$?
 	echo $rc > /run/atomic-devmode-cockpit.rc
 	journalctl -f
 }
